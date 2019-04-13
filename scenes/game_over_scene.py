@@ -3,39 +3,33 @@ from pygame.locals import *
 from scenes.scene import Scene
 from utils import pygame_utils
 from game_objects.game_object import GameObject
-from game_objects.tile import Tile
+from game_objects.text import Text
 
 
 class GameOverScene(Scene):
     def __init__(self, controller, last_frame, win=False):
         super().__init__(controller)
-        self.background.image = last_frame
+        last_frame = GameObject(
+            self.game_objects, last_frame.get_rect(), last_frame
+        )
+        self.background.blit(last_frame)
         if win:
             title_str = "Congratulations!"
-            title_text = self._font.render(title_str, True, (40, 255, 40))
+            title = Text(title_str, self._font, (40, 255, 40))
         else:
             title_str = "GAME OVER"
-            title_text = self._font.render(title_str, True, (255, 40, 40))
+            title = Text(title_str, self._font, (255, 40, 40))
 
         sub_str = "press ESC to quit"
         sub_str2 = "press any other key to try again..."
-        title_text.set_alpha(90)
-        title_text_rect = title_text.get_rect()
-        title_text_rect.center = (400, 200)
 
-        sub_text = self._small_font.render(sub_str, True, (20, 20, 20))
-        sub_text.set_alpha(90)
-        sub_text_rect = sub_text.get_rect()
-        sub_text_rect.center = (400, 400)
+        sub1 = Text(sub_str, self._small_font, (20, 20, 20))
+        sub2 = Text(sub_str2, self._small_font, (20, 20, 20))
 
-        sub_text2 = self._small_font.render(sub_str2, True, (20, 20, 20))
-        sub_text2.set_alpha(100)
-        sub_text2_rect = sub_text2.get_rect()
-        sub_text2_rect.center = (400, 500)
-
-        title = GameObject(self.game_objects, title_text_rect, title_text)
-        sub1 = GameObject(self.game_objects, sub_text_rect, sub_text)
-        sub2 = GameObject(self.game_objects, sub_text2_rect, sub_text2)
+        title.rect.center = (400, 200)
+        sub1.rect.center = (400, 400)
+        sub2.rect.center = (400, 500)
+        self.title = title
         self.game_objects.add(
             title, sub1, sub2
         )

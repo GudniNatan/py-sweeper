@@ -25,7 +25,8 @@ def pad(source: Surface, margins: tuple, background_color=None) -> Surface:
     padded_rect = Rect(source_rect)
     padded_rect.w += margins.left + margins.right
     padded_rect.h += margins.top + margins.bottom
-    padded_surface = Surface(padded_rect.size)
+    padded_surface = Surface(padded_rect.size, pygame.SRCALPHA, 32)
+    padded_surface = padded_surface.convert_alpha()
     if background_color:
         padded_surface.fill(background_color)
     padded_surface.blit(source, (margins.left, margins.top))

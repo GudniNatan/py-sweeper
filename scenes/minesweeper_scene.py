@@ -6,19 +6,28 @@ from better_timers import timers
 from utils import pygame_utils, chain_reveal
 from game_objects.game_object import GameObject
 from game_objects.tile import Tile
+from game_objects.text import Text
 from scenes.game_over_scene import GameOverScene
 
 
 class MinesweeperScene(Scene):
     def __init__(self, controller):
         super().__init__(controller)
+        self.clock = 900000
+        self.clock_text = Text(self.get_clock_str(), self._font, (20, 20, 20))
+        self.clock_text.rect.center = (400, 50)
         self.tile_count = (20, 14)
         self.tile_offset = (40, 100)
-        self.mine_count = 20
+        self.mine_count = 1
         self.unrevealed = self.tile_count[0] * self.tile_count[1]
         self.tiles = self.make_tiles()
         self.place_tiles()
-        self.game_objects.add(*self.tiles)
+        self.game_objects.add(*self.tiles, self.clock_text)
+
+    def get_clock_str(self):
+        minutes = self.clock // 60000
+        seconds = (self.clock - (minutes * 60000)) // 1000
+        return str(minutes).zfill(2) + ":" + str(seconds).zfill(2)
 
     def make_tiles(self):
         tile_x, tile_y = self.tile_count
@@ -92,23 +101,29 @@ class MinesweeperScene(Scene):
     def reveal_tile(self, tile, x, y):
         if tile.revealed:
             return
-        tile.reveal()
-        self.unrevealed -= 1
+        self.unrevealed -= chain_reveal.chain_reveal(self.tiles, tile)
+        print(self.unrevealed)
         if tile.type == "mine":
             # game over
             event = pygame.event.Event(USEREVENT, code="lose")
             timers.set_timer(event, 200)
-        elif tile.type == "0":
-            # chain reveal
-            chain_reveal.chain_reveal(self.tiles, tile)
+            pygame.mixer.Sound("sounds/bomb.wav").play()
         elif self.unrevealed == self.mine_count:
             # win!
             event = pygame.event.Event(USEREVENT, code="win")
             timers.set_timer(event, 200)
-
+            pygame.mixer.Sound("sounds/ta da.wav").play()
 
     def update(self, ms):
+        self.clock -= ms
+        if self.clock <= 1000:
+            event = pygame.event.Event(USEREVENT, code="lose")
+            timers.set_timer(event, 200)
         return super().update(ms)
 
     def render(self, screen):
+        clock_str = self.get_clock_str()
+        if self.clock_text.text != clock_str:
+            self.clock_text.text = self.get_clock_str()
+            self.clock_text.render()
         return super().render(screen)
