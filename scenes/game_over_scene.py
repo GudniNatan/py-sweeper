@@ -4,23 +4,27 @@ from scenes.scene import Scene
 from utils import pygame_utils
 from game_objects.game_object import GameObject
 from game_objects.tile import Tile
-from scenes.minesweeper_scene import MinesweeperScene
 
 
-class MenuScene(Scene):
-    def __init__(self, controller, last_frame):
+class GameOverScene(Scene):
+    def __init__(self, controller, last_frame, win=False):
         super().__init__(controller)
         self.background.image = last_frame
-        title_str = "GAME OVER"
+        if win:
+            title_str = "Congratulations!"
+            title_text = self._font.render(title_str, True, (40, 255, 40))
+        else:
+            title_str = "GAME OVER"
+            title_text = self._font.render(title_str, True, (255, 40, 40))
+
         sub_str = "press ESC to quit"
         sub_str2 = "press any other key to try again..."
-        title_text = self._font.render(title_str, True, (255, 255, 255))
-        title_text.set_alpha(100)
+        title_text.set_alpha(90)
         title_text_rect = title_text.get_rect()
         title_text_rect.center = (400, 200)
 
         sub_text = self._small_font.render(sub_str, True, (20, 20, 20))
-        sub_text.set_alpha(100)
+        sub_text.set_alpha(90)
         sub_text_rect = sub_text.get_rect()
         sub_text_rect.center = (400, 400)
 
@@ -39,6 +43,7 @@ class MenuScene(Scene):
     def handle_events(self, events):
         for event in events:
             if event.type == KEYDOWN:
+                from scenes.minesweeper_scene import MinesweeperScene
                 self.set_scene(MinesweeperScene)
 
     def update(self, ms):

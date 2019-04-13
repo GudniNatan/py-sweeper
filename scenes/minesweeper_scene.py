@@ -2,9 +2,11 @@ from random import shuffle
 import pygame
 from pygame.locals import *
 from scenes.scene import Scene
+from better_timers import timers
 from utils import pygame_utils, chain_reveal
 from game_objects.game_object import GameObject
 from game_objects.tile import Tile
+from scenes.game_over_scene import GameOverScene
 
 
 class MinesweeperScene(Scene):
@@ -62,8 +64,16 @@ class MinesweeperScene(Scene):
         for event in events:
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 self.left_click(event.pos)
-            if event.type == MOUSEBUTTONDOWN and event.button != 1:
+            elif event.type == MOUSEBUTTONDOWN and event.button != 1:
                 self.right_click(event.pos)
+            elif event.type == USEREVENT and event.code == "lose":
+                self.set_scene(GameOverScene, pygame.display.get_surface())
+                timers.set_timer(event, 0)
+            elif event.type == USEREVENT and event.code == "win":
+                self.set_scene(
+                    GameOverScene, pygame.display.get_surface(), True
+                )
+                timers.set_timer(event, 0)
 
     def left_click(self, position):
         for x, row in enumerate(self.tiles):
@@ -86,10 +96,16 @@ class MinesweeperScene(Scene):
         self.unrevealed -= 1
         if tile.type == "mine":
             # game over
-            print("game over")
+            event = pygame.event.Event(USEREVENT, code="lose")
+            timers.set_timer(event, 200)
         elif tile.type == "0":
             # chain reveal
             chain_reveal.chain_reveal(self.tiles, tile)
+        elif self.unrevealed == self.mine_count:
+            # win!
+            event = pygame.event.Event(USEREVENT, code="win")
+            timers.set_timer(event, 200)
+
 
     def update(self, ms):
         return super().update(ms)
