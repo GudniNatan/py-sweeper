@@ -9,6 +9,7 @@ def init():
     pygame.init()
     window_size = (800, 600)
     screen = pygame.display.set_mode(window_size, pygame.DOUBLEBUF)
+    pygame.display.set_caption("py-sweeper")
     clock = pygame.time.Clock()
     game_loop(screen, clock, SceneController(), MAX_FRAMERATE)
     pygame.quit()
