@@ -1,3 +1,4 @@
+import os
 from random import shuffle
 import pygame
 from pygame.locals import *
@@ -11,18 +12,44 @@ from scenes.game_over_scene import GameOverScene
 
 
 class MinesweeperScene(Scene):
-    def __init__(self, controller):
+    def __init__(self, controller, difficulty):
         super().__init__(controller)
         self.clock = 900000
         self.clock_text = Text(self.get_clock_str(), self._font, (20, 20, 20))
         self.clock_text.rect.center = (400, 50)
-        self.tile_count = (20, 14)
-        self.tile_offset = (40, 100)
-        self.mine_count = 1
+        if difficulty == "Easy":
+            self.tile_count = (10, 10)
+            self.tile_offset = (220, 150)
+        elif difficulty == "Medium":
+            self.tile_count = (14, 14)
+            self.tile_offset = (150, 100)
+        elif difficulty == "Hard":
+            self.tile_count = (20, 14)
+            self.tile_offset = (40, 100)
         self.unrevealed = self.tile_count[0] * self.tile_count[1]
+        back_rect = pygame.Rect(
+            self.tile_offset,
+            (self.tile_count[0] * Tile.TILE_SIZE[0] + 1,
+             self.tile_count[1] * Tile.TILE_SIZE[1] + 1)
+        )
+        self.backdrop = GameObject(self.game_objects, back_rect)
+        self.mine_count = self.unrevealed // 8
+        self.unmarked = Text("x"+str(self.mine_count), self._small_font)
+        self.unmarked.rect.center = (600, 50)
+
+        mine_icon = pygame.image.load(
+            os.path.join('spritesheet', f'mine.png')
+        ) 
+        mine_icon = pygame_utils.aspect_scale(mine_icon, (25, 25))
+        mine_icon = GameObject(
+            self.game_objects, mine_icon.get_rect(), mine_icon)
+        mine_icon.rect.center = (550, 50)
         self.tiles = self.make_tiles()
         self.place_tiles()
-        self.game_objects.add(*self.tiles, self.clock_text)
+        self.game_objects.add(self.backdrop, *self.tiles, self.clock_text,
+                              self.unmarked, mine_icon)
+        self.win_sound = pygame.mixer.Sound("sounds/ta da.wav")
+        self.lose_sound = pygame.mixer.Sound("sounds/bomb.wav")
 
     def get_clock_str(self):
         minutes = self.clock // 60000
@@ -76,9 +103,13 @@ class MinesweeperScene(Scene):
             elif event.type == MOUSEBUTTONDOWN and event.button != 1:
                 self.right_click(event.pos)
             elif event.type == USEREVENT and event.code == "lose":
+                self.reveal_all()
+                self._Scene__controller.render(pygame.display.get_surface())
                 self.set_scene(GameOverScene, pygame.display.get_surface())
                 timers.set_timer(event, 0)
             elif event.type == USEREVENT and event.code == "win":
+                self.reveal_all()
+                self._Scene__controller.render(pygame.display.get_surface())
                 self.set_scene(
                     GameOverScene, pygame.display.get_surface(), True
                 )
@@ -96,23 +127,38 @@ class MinesweeperScene(Scene):
             for tile in row:
                 if tile.rect.collidepoint(position):
                     tile.toggle_mark()
+                    if tile.marked:
+                        if self.mine_count <= 0:
+                            tile.toggle_mark()
+                        else:
+                            self.mine_count -= 1
+                    else:
+                        self.mine_count += 1
+                    self.unmarked.text = "x" + str(self.mine_count)
+                    self.unmarked.render()
                     return
 
     def reveal_tile(self, tile, x, y):
-        if tile.revealed:
+        if tile.revealed or tile.marked:
             return
         self.unrevealed -= chain_reveal.chain_reveal(self.tiles, tile)
-        print(self.unrevealed)
         if tile.type == "mine":
             # game over
+            self.lose_sound.play()
             event = pygame.event.Event(USEREVENT, code="lose")
-            timers.set_timer(event, 200)
-            pygame.mixer.Sound("sounds/bomb.wav").play()
+            timers.set_timer(event, 500)
         elif self.unrevealed == self.mine_count:
             # win!
+            self.win_sound.play()
             event = pygame.event.Event(USEREVENT, code="win")
             timers.set_timer(event, 200)
-            pygame.mixer.Sound("sounds/ta da.wav").play()
+
+    def reveal_all(self):
+        for row in self.tiles:
+            for tile in row:
+                if tile.marked and tile.type != "mine" and not tile.revealed:
+                    tile.type = "misplaced"
+                tile.reveal()
 
     def update(self, ms):
         self.clock -= ms

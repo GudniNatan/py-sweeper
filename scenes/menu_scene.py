@@ -4,7 +4,7 @@ from scenes.scene import Scene
 from utils import pygame_utils
 from game_objects.game_object import GameObject
 from game_objects.tile import Tile
-from scenes.minesweeper_scene import MinesweeperScene
+from scenes.difficulty_selection_scene import DifficultySelectionScene
 
 
 class MenuScene(Scene):
@@ -32,8 +32,8 @@ class MenuScene(Scene):
 
     def handle_events(self, events):
         for event in events:
-            if event.type == KEYDOWN:
-                self.set_scene(MinesweeperScene)
+            if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
+                self.set_scene(DifficultySelectionScene)
 
     def update(self, ms):
         return super().update(ms)

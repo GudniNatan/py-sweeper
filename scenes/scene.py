@@ -1,3 +1,4 @@
+from pathlib import Path
 from abc import ABC, abstractmethod
 import pygame
 from pygame.sprite import LayeredUpdates, groupcollide
@@ -11,8 +12,13 @@ class Scene(ABC):
     BOLD_FONT = "fonts/Connection/ConnectionBold.otf"
 
     def __init__(self, controller):
+        try:
+            open(self.REGULAR_FONT).close()
+        except FileNotFoundError:
+            fix_path()
         self._font = ftfont.Font(self.REGULAR_FONT, 50)
         self._small_font = ftfont.Font(self.REGULAR_FONT, 30)
+        self._bold_font = ftfont.Font(self.BOLD_FONT, 30)
         self.__controller = controller
         try:
             self.__last_scene = controller.get_scene()
@@ -20,11 +26,6 @@ class Scene(ABC):
             self.__last_scene = None
         self.game_objects = LayeredUpdates()
         self.screen_rect = pygame.display.get_surface().get_rect()
-        try:
-            open(self.REGULAR_FONT).close()
-        except FileNotFoundError:
-            fix_path()
-
         background = pygame.Surface(self.screen_rect.size)
         background.fill((240, 240, 240))
         self.background = GameObject(
