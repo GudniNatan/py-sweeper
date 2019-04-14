@@ -1,5 +1,4 @@
 import os
-import sys
 import cx_Freeze
 
 os.environ['TCL_LIBRARY'] = r'C:\\Users\\Guðni\\AppData\\Local\\Programs\\Python\\Python37\\tcl\\tcl8.6'
@@ -15,5 +14,5 @@ cx_Freeze.setup(
     description="Minesweeper in python! (using pygame)",
     author="Guðni Natan Gunnarsson",
     options={"build_exe": buildOptions},
-    executables=[cx_Freeze.Executable("main.py")]
+    executables=[cx_Freeze.Executable("main.py", targetName="py-sweeper.exe")]
 )

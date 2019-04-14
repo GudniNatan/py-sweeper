@@ -13,6 +13,10 @@ With three difficulty settings to choose from and millions of random configurati
 This project requires both python 3.6+ and pygame. You can install pygame it with:<br>
 `pip install pygame`
 
+Dont want to install python? Can't handle the hassle of pip?  
+Dont worry!  
+Just visit the [releases tab](https://github.com/GudniNatan/py-sweeper/releases), and download the latest windows build of py-sweeper!
+
 ## Usage
 
 Run `main.py` in the project directory!
