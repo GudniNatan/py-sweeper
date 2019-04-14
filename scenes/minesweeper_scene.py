@@ -34,12 +34,13 @@ class MinesweeperScene(Scene):
         )
         self.backdrop = GameObject(self.game_objects, back_rect)
         self.mine_count = self.unrevealed // 8
+        self.original_mine_count = self.mine_count
         self.unmarked = Text("x"+str(self.mine_count), self._small_font)
         self.unmarked.rect.center = (600, 50)
 
         mine_icon = pygame.image.load(
             os.path.join('spritesheet', f'mine.png')
-        ) 
+        )
         mine_icon = pygame_utils.aspect_scale(mine_icon, (25, 25))
         mine_icon = GameObject(
             self.game_objects, mine_icon.get_rect(), mine_icon)
@@ -141,13 +142,15 @@ class MinesweeperScene(Scene):
     def reveal_tile(self, tile, x, y):
         if tile.revealed or tile.marked:
             return
+        print(self.unrevealed)
         self.unrevealed -= chain_reveal.chain_reveal(self.tiles, tile)
+        print(self.unrevealed)
         if tile.type == "mine":
             # game over
             self.lose_sound.play()
             event = pygame.event.Event(USEREVENT, code="lose")
             timers.set_timer(event, 500)
-        elif self.unrevealed == self.mine_count:
+        elif self.unrevealed == self.original_mine_count:
             # win!
             self.win_sound.play()
             event = pygame.event.Event(USEREVENT, code="win")

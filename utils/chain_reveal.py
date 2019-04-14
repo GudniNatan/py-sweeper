@@ -11,8 +11,9 @@ def chain_reveal(tiles, tile):
     discovered = set([(tile.x, tile.y)])
     while len(S) > 0:
         v = S.popleft()
-        v.reveal()
-        revealed += 1
+        if not v.revealed:
+            v.reveal()
+            revealed += 1
         if v.type != "0":
             continue
         for x, y in touching:
