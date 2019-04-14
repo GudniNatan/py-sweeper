@@ -142,9 +142,7 @@ class MinesweeperScene(Scene):
     def reveal_tile(self, tile, x, y):
         if tile.revealed or tile.marked:
             return
-        print(self.unrevealed)
         self.unrevealed -= chain_reveal.chain_reveal(self.tiles, tile)
-        print(self.unrevealed)
         if tile.type == "mine":
             # game over
             self.lose_sound.play()
